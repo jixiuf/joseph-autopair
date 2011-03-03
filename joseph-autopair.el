@@ -221,7 +221,7 @@ new line and indent the region."
 (defun joseph-autopair-after-change-function (first last len)
   (when (and (= len 0)
              (boundp 'major-mode)
-             (equal this-command 'self-insert-command)
+             (member this-command '(self-insert-command c-electric-brace c-electric-paren))
              (member major-mode (mapcar 'car joseph-autopair-alist)))
     (let* ( (mode-pair (cdr (assoc major-mode joseph-autopair-alist)))
             (heads (mapcar 'car mode-pair))
