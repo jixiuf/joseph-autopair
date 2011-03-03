@@ -65,7 +65,7 @@
 ;;  Actually: 
 ;;  a pair like this in `joseph-autopair-alist':
 ;;                    ("[" "]")
-;;  is equals to:
+;;   equals to:
 ;;                    ("[" (save-excursion (insert "]")))
 ;;
 ;;  but a litter difference exists :
@@ -160,6 +160,7 @@ new line and indent the region."
     (setq end (point))
     (forward-line -1)
     (indent-region begin end)
+    (indent-according-to-mode)
     )
   )
 
