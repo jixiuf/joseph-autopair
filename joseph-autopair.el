@@ -190,9 +190,8 @@ new line and indent the region."
            )
       (when head
         (let ((tail (nth 1 (assoc head mode-pair))))
-          (when (and (stringp tail)
-                     (not (eobp))
-                 )
+          (when (and (stringp tail) (not (eobp))
+                     (looking-at tail))
             (delete-char (length  tail)
                          ))
           ))
@@ -211,9 +210,8 @@ new line and indent the region."
            )
       (when head
         (let ((tail (nth 1 (assoc head mode-pair))))
-          (when (and (stringp tail)
-                     (not (eobp))
-                 )
+          (when (and (stringp tail) (not (eobp))
+                     (looking-at tail))
             (delete-char (length  tail)
                          ))))
       (joseph-autopair-origin-backward-delete-char-untabify ARG  KILLP)
@@ -259,7 +257,6 @@ new line and indent the region."
           )
       (insert new-inserted)
       )))
-
 
 (defun joseph-autopair-insert-or-eval-tail(pair)
   " if param `pair' is string insert it
