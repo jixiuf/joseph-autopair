@@ -6,7 +6,8 @@
 ;; Maintainer: Joseph <jixiuf@gmail.com>
 ;; Copyright (C) 2011~, Joseph, all rights reserved.
 ;; Created: 2011-03-02
-;; Version: 0.1.0
+;; Updated: 2010-03-03
+;; Version: 0.1.1
 ;; URL: http://www.emacswiki.org/joseph-autopair.el
 ;; Keywords: autopair parentheses skeleton
 ;; Compatibility: (Test on GNU Emacs 23.2.1).
@@ -189,10 +190,12 @@ new line and indent the region."
            )
       (when head
         (let ((tail (nth 1 (assoc head mode-pair))))
-          (print tail)
-          (when (stringp tail)
+          (when (and (stringp tail)
+                     (not (eobp))
+                 )
             (delete-char (length  tail)
-                         ))))
+                         ))
+          ))
       (joseph-autopair-origin-delete-backward-char  N KILLP)
       ))  
   )
@@ -208,7 +211,9 @@ new line and indent the region."
            )
       (when head
         (let ((tail (nth 1 (assoc head mode-pair))))
-          (when (stringp tail)
+          (when (and (stringp tail)
+                     (not (eobp))
+                 )
             (delete-char (length  tail)
                          ))))
       (joseph-autopair-origin-backward-delete-char-untabify ARG  KILLP)
@@ -225,16 +230,12 @@ new line and indent the region."
              (member major-mode (mapcar 'car joseph-autopair-alist)))
     (let* ( (mode-pair (cdr (assoc major-mode joseph-autopair-alist)))
             (heads (mapcar 'car mode-pair))
-            (head   (joseph-autopair-editing-find-head heads))
-            tail 
-            )
+            (head (joseph-autopair-editing-find-head heads))
+            tail)
       (if (and head
-               (not
-                (and (stringp (setq tail (nth 1 (assoc head mode-pair)))) 
-                     (string-equal head tail)
-                     (looking-at (regexp-quote head)))
-                )
-           )
+               (not (and (stringp (setq tail (nth 1 (assoc head mode-pair)))) 
+                         (string-equal head tail)
+                         (looking-at (regexp-quote head)))))
           (joseph-autopair-insert-or-eval-tail (assoc head mode-pair));;insert tail
         (joseph-autopair-skip-tail first last mode-pair heads);; skip tail
         ))))
