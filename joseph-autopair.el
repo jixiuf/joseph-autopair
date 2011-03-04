@@ -6,8 +6,8 @@
 ;; Maintainer: Joseph <jixiuf@gmail.com>
 ;; Copyright (C) 2011~, Joseph, all rights reserved.
 ;; Created: 2011-03-02
-;; Updated: 2010-03-03
-;; Version: 0.1.1
+;; Updated: 2010-03-04
+;; Version: 0.1.2
 ;; URL: http://www.emacswiki.org/joseph-autopair.el
 ;; Keywords: autopair parentheses skeleton
 ;; Compatibility: (Test on GNU Emacs 23.2.1).
@@ -50,7 +50,7 @@
 ;;  so that when you press `Backspace' between "(" and ")"
 ;;  both "(" and ")" is deleted.
 ;;
-;;  This is only enabled when the "tail" is `stringp'
+;;  This is only enabled when the "tail" is `string'
 ;;  what is that means?
 ;;  because "tail" can be a `string' or a lisp sentence
 ;;  when it is a `string' , it will be inserted directly.
@@ -70,7 +70,7 @@
 ;;                    ("[" (save-excursion (insert "]")))
 ;;
 ;;  but a litter difference exists :
-;;  when the "tail" is `stringp' then I can get the length of tail
+;;  when the "tail" is `string' then I can get the length of tail
 ;;  eazyly, so that I can delete or skip it depending
 ;;  on the length of "tail".
 ;;  that means only string type "tail" can be skipped
@@ -96,6 +96,8 @@
 ;;
 ;; Below are complete command list:
 ;;
+;;  `joseph-autopair-toggle-autopair'
+;;    toggle joseph-autopair.
 ;;
 ;;; Customizable Options:
 ;;
@@ -271,6 +273,7 @@ if not ,eval it."
 (defvar joseph-autopair-activated-p nil)
 
 (defun joseph-autopair-toggle-autopair()
+  "toggle joseph-autopair."
   (interactive)
   (if joseph-autopair-activated-p
       (progn
