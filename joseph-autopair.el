@@ -184,7 +184,7 @@ new line and indent the region."
 (defun joseph-autopair-delete-backward-char
   ( N &optional KILLP)
   (interactive "*p\nP")
-  (when (and (boundp 'major-mode)
+  (if (and (boundp 'major-mode)
              (member major-mode (mapcar 'car joseph-autopair-alist)))
     (let* ((mode-pair (cdr (assoc major-mode joseph-autopair-alist)))
            (heads (mapcar 'car mode-pair))
@@ -198,7 +198,9 @@ new line and indent the region."
                          ))
           ))
       (joseph-autopair-origin-delete-backward-char  N KILLP)
-      ))
+      )
+    (joseph-autopair-origin-delete-backward-char  N KILLP)
+    )
   )
 
 (defun joseph-autopair-backward-delete-char-untabify
