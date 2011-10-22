@@ -1,14 +1,14 @@
 ;;; joseph-autopair.el  Another autopair or skeleton.
 
 ;; Filename: joseph-autopair.el
+;; Created: 2011-03-02
+;; Last Updated: Joseph 2011-10-22 12:46:25 星期六
+;; Version: 0.1.3
 ;; Description:   Another autopair or skeleton.
 ;; Author: Joseph <jixiuf@gmail.com>
-;; Maintainer: Joseph <jixiuf@gmail.com>
 ;; Copyright (C) 2011~, Joseph, all rights reserved.
-;; Created: 2011-03-02
-;; Updated: 2011-6-17 22:39:00
-;; Version: 0.1.3
 ;; URL: http://www.emacswiki.org/joseph-autopair.el
+;;      https://github.com/jixiuf/joseph-autopair
 ;; Keywords: autopair parentheses skeleton
 ;; Compatibility: (Test on GNU Emacs 23.2.1).
 ;; it only work on Gui ,bug when you paste something on Console
