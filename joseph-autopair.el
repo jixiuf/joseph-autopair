@@ -2,8 +2,8 @@
 
 ;; Filename: joseph-autopair.el
 ;; Created: 2011-03-02
-;; Last Updated: Joseph 2011-10-22 12:47:40 星期六
-;; Version: 0.1.4
+;; Last Updated: Joseph 2011-10-22 16:15:53 星期六
+;; Version: 0.2.0
 ;; Description:   Another autopair or skeleton.
 ;; Author: Joseph <jixiuf@gmail.com>
 ;; Copyright (C) 2011~, Joseph, all rights reserved.
@@ -49,7 +49,7 @@
 ;;  `delete-backward-char'
 ;;  `backward-delete-char-untabify'
 ;;  so that when you press `Backspace' between "(" and ")"
-;;  both "(" and ")" is deleted.
+;;  both "(" and ")" are deleted.
 ;;
 ;;  This is only enabled when the "tail" is `string'
 ;;  what is that means?
@@ -97,8 +97,6 @@
 ;;
 ;; Below are complete command list:
 ;;
-;;  `joseph-auto-pair-mode'
-;;    joseph autopair  mode.
 ;;
 ;;; Customizable Options:
 ;;
@@ -107,6 +105,9 @@
 ;;  `joseph-autopair-alist'
 ;;    doc.
 ;;    default = (quote ((emacs-lisp-mode ... ... ... ...) (lisp-interaction-mode ... ... ... ...) (c-mode ... ... ... ... ...) (java-mode ... ... ... ... ...) (sh-mode ... ...)))
+;;  `joseph-autopair-command'
+;;    command would trigger joseph auto pair
+;;    default = (quote (self-insert-command c-electric-brace c-electric-paren))
 
 ;;; Code
 
@@ -117,43 +118,58 @@ things you defined in pairs."
   :prefix "joseph-autopair-"
   )
 
+
 (defcustom joseph-autopair-alist
-      '( (emacs-lisp-mode . (
-                             ("\"" "\"")
-                             ("`" "'")
-                             ("(" ")")
-                             ("[" "]")
-                             ))
-         (lisp-interaction-mode . (
-                                   ("\"" "\"")
-                                   ("`" "'")
-                                   ("(" ")")
-                                   ("[" "]")
-                                   ))
-         ( c-mode . (
-                     ("\"" "\"" )
-                     ("'" "'")
-                     ("(" ")" )
-                     ("[" "]" )
-                     ("{" (joseph-autopair-newline-indent-insert "}"))
-                     ))
-         (java-mode . (
-                       ("\"" "\"")
-                       ("'" "'")
-                       ("(" ")")
-                       ("[" "]")
-                       ("{" (joseph-autopair-newline-indent-insert "}"))
-                       ))
-         (sh-mode . ( ;;just a example
-                     ("if" (joseph-autopair-newline-indent-insert "fi"))
-                     ("begin" (progn
-                              (insert " end")
-                              (end-of-line)
-                              ))
-                     )))
-      "doc."
-      :group 'joseph-autopair
-      )
+  '( (emacs-lisp-mode . (
+                         ("\"" "\"")
+                         ("`" "'")
+                         ("(" ")")
+                         ("[" "]")
+                         ))
+     (lisp-interaction-mode . (
+                               ("\"" "\"")
+                               ("`" "'")
+                               ("(" ")")
+                               ("[" "]")
+                               ))
+     ( c-mode . (
+                 ("\"" "\"" )
+                 ("'" "'")
+                 ("(" ")" )
+                 ("[" "]" )
+                 ("{" (joseph-autopair-newline-indent-insert "}"))
+                 ))
+     (java-mode . (
+                   ("\"" "\"")
+                   ("'" "'")
+                   ("(" ")")
+                   ("[" "]")
+                   ("{" (joseph-autopair-newline-indent-insert "}"))
+                   ))
+     (sh-mode . ( ;;just a example
+                 ("if " (joseph-autopair-newline-indent-insert "fi"))
+                 ("begin " (progn
+                            (insert " end")
+                            (end-of-line)
+                            ))
+                 )))
+  "doc."
+  :group 'joseph-autopair
+  )
+
+(defcustom joseph-autopair-command
+  '(self-insert-command c-electric-brace c-electric-paren)
+  "command would trigger joseph auto pair"
+  :group 'joseph-autopair
+  )
+
+(unless (functionp 'origin-backward-delete-char-untabify-1)
+  (defalias 'origin-backward-delete-char-untabify-1 (symbol-function 'backward-delete-char-untabify)))
+(unless (functionp 'origin-delete-backward-char-1)
+  (defalias 'origin-delete-backward-char-1 (symbol-function 'backward-delete-char)))
+
+(defvar joseph-autopair-selection nil)
+(defvar joseph-autopair-selection-bounds nil)
 
 (defun joseph-autopair-newline-indent-insert(str)
   "insert new line and insert str ,put point on the
@@ -225,15 +241,23 @@ new line and indent the region."
       )
     (origin-backward-delete-char-untabify-1 ARG  KILLP)
     ))
-
-(defalias 'origin-backward-delete-char-untabify-1 (symbol-function 'backward-delete-char-untabify))
-(defalias 'origin-delete-backward-char-1 (symbol-function 'backward-delete-char))
-
+(defun joseph-autopair-before-change-function (beg last)
+  "hook for `before-change-function'"
+  (when (and mark-active
+             (boundp 'major-mode)
+             (member major-mode (mapcar 'car joseph-autopair-alist))
+             (member this-command  joseph-autopair-command)
+             (not (equal  (region-beginning)(region-end)))
+             )
+    (setq joseph-autopair-selection
+          (buffer-substring-no-properties (region-beginning)(region-end)))
+    (setq joseph-autopair-selection-bounds
+          (cons (region-beginning) (region-end)))))
 
 (defun joseph-autopair-after-change-function (first last len)
   (when (and (= len 0)
              (boundp 'major-mode)
-             (member this-command '(self-insert-command c-electric-brace c-electric-paren))
+             (member this-command  joseph-autopair-command)
              (member major-mode (mapcar 'car joseph-autopair-alist)))
     (let* ( (mode-pair (cdr (assoc major-mode joseph-autopair-alist)))
             (heads (mapcar 'car mode-pair))
@@ -243,7 +267,20 @@ new line and indent the region."
                (not (and (stringp (setq tail (nth 1 (assoc head mode-pair))))
                          (string-equal head tail)
                          (looking-at (regexp-quote head)))))
-          (joseph-autopair-insert-or-eval-tail (assoc head mode-pair));;insert tail
+          (progn
+            (when  joseph-autopair-selection
+              (insert  joseph-autopair-selection)
+              (unless delete-selection-mode
+                (delete-region
+                 (+ (length head ) (car joseph-autopair-selection-bounds))
+                 (+ (length head ) (cdr joseph-autopair-selection-bounds)))
+                (forward-char (length joseph-autopair-selection))
+                )
+              (setq joseph-autopair-selection nil)
+              )
+            (joseph-autopair-insert-or-eval-tail (assoc head mode-pair));;insert tail
+
+            )
         (joseph-autopair-skip-tail first last mode-pair heads);; skip tail
         ))))
 
@@ -276,23 +313,25 @@ if not ,eval it."
       (eval tail)
       )
     ))
-
-
-(define-minor-mode joseph-auto-pair-mode
-  "joseph autopair  mode."
-  ;; :lighter " AP"
-  :group 'convenience
-  (if joseph-auto-pair-mode
+(defvar  joseph-auto-pair-mode nil)
+(defun toggle-joseph-auto-pair-mode()
+  (interactive)
+  (if (not joseph-auto-pair-mode)
       (progn
         (defalias 'backward-delete-char-untabify  (symbol-function 'joseph-autopair-backward-delete-char-untabify))
         (defalias 'backward-delete-char  (symbol-function 'joseph-autopair-delete-backward-char))
         (add-hook 'after-change-functions 'joseph-autopair-after-change-function)
+        (add-hook 'before-change-functions 'joseph-autopair-before-change-function)
+        (setq joseph-auto-pair-mode t)
+        (message "joseph auto pair mode enabled")
         )
     (defalias 'backward-delete-char-untabify  (symbol-function 'origin-backward-delete-char-untabify-1))
-    (defalias 'backward-delete-char  (symbol-function 'origin-delete-backward-char-1))
+    (defalias 'backward-delete-char  (symbol-function 'origin-delete-backwardchar-1))
     (remove-hook 'after-change-functions 'joseph-autopair-after-change-function)
+    (remove-hook 'before-change-functions 'joseph-autopair-before-change-function)
+    (setq joseph-auto-pair-mode nil)
+    (message " joseph auto pair mode disabled")
     ))
-
 
 (provide 'joseph-autopair)
 ;;joseph-autopair.el ends here.
