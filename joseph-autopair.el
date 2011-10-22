@@ -2,8 +2,8 @@
 
 ;; Filename: joseph-autopair.el
 ;; Created: 2011-03-02
-;; Last Updated: Joseph 2011-10-22 12:46:25 星期六
-;; Version: 0.1.3
+;; Last Updated: Joseph 2011-10-22 12:47:40 星期六
+;; Version: 0.1.4
 ;; Description:   Another autopair or skeleton.
 ;; Author: Joseph <jixiuf@gmail.com>
 ;; Copyright (C) 2011~, Joseph, all rights reserved.
