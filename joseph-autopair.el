@@ -58,8 +58,8 @@
 ;;  when it is a lisp sentence ,it will be eval.
 ;;  see the default value of `joseph-autopair-alist'.
 ;;
-;;      `joseph-autopair-origin-backward-delete-char-untabify'
-;;      `joseph-autopair-origin-delete-backward-char'
+;;      `origin-backward-delete-char-untabify-1'
+;;      `origin-delete-backward-char-1'
 ;;  are the original
 ;;  `backward-delete-char-untabify' `delete-backward-char'.
 ;;
@@ -97,8 +97,8 @@
 ;;
 ;; Below are complete command list:
 ;;
-;;  `joseph-autopair-toggle-autopair'
-;;    toggle joseph-autopair.
+;;  `joseph-auto-pair-mode'
+;;    joseph autopair  mode.
 ;;
 ;;; Customizable Options:
 ;;
@@ -107,6 +107,8 @@
 ;;  `joseph-autopair-alist'
 ;;    doc.
 ;;    default = (quote ((emacs-lisp-mode ... ... ... ...) (lisp-interaction-mode ... ... ... ...) (c-mode ... ... ... ... ...) (java-mode ... ... ... ... ...) (sh-mode ... ...)))
+
+;;; Code
 
 (defgroup joseph-autopair nil
   " Autoinsert parentheses or other
@@ -198,16 +200,16 @@ new line and indent the region."
             (delete-char (length  tail)
                          ))
           ))
-      (joseph-autopair-origin-delete-backward-char  N KILLP)
+      (origin-delete-backward-char-1  N KILLP)
       )
-    (joseph-autopair-origin-delete-backward-char  N KILLP)
+    (origin-delete-backward-char-1  N KILLP)
     )
   )
 
 (defun joseph-autopair-backward-delete-char-untabify
   (  ARG &optional KILLP)
   (interactive "*p\nP")
-  (when (and (boundp 'major-mode)
+  (if (and (boundp 'major-mode)
              (member major-mode (mapcar 'car joseph-autopair-alist)))
     (let* ((mode-pair (cdr (assoc major-mode joseph-autopair-alist)))
            (heads (mapcar 'car mode-pair))
@@ -219,11 +221,13 @@ new line and indent the region."
                      (looking-at tail))
             (delete-char (length  tail)
                          ))))
-      (joseph-autopair-origin-backward-delete-char-untabify ARG  KILLP)
-      )))
+      (origin-backward-delete-char-untabify-1 ARG  KILLP)
+      )
+    (origin-backward-delete-char-untabify-1 ARG  KILLP)
+    ))
 
-(defalias 'joseph-autopair-origin-backward-delete-char-untabify (symbol-function 'backward-delete-char-untabify))
-(defalias 'joseph-autopair-origin-delete-backward-char (symbol-function 'backward-delete-char))
+(defalias 'origin-backward-delete-char-untabify-1 (symbol-function 'backward-delete-char-untabify))
+(defalias 'origin-delete-backward-char-1 (symbol-function 'backward-delete-char))
 
 
 (defun joseph-autopair-after-change-function (first last len)
@@ -248,7 +252,7 @@ new line and indent the region."
   (let ((new-inserted (buffer-substring first last))
         head
         tail)
-    (joseph-autopair-origin-backward-delete-char-untabify (length new-inserted))
+    (origin-backward-delete-char-untabify-1 (length new-inserted))
     (setq head   (joseph-autopair-editing-find-head heads))
     (if head
         (progn
@@ -273,26 +277,22 @@ if not ,eval it."
       )
     ))
 
-(defvar joseph-autopair-activated-p nil)
 
-(defun joseph-autopair-toggle-autopair()
-  "toggle joseph-autopair."
-  (interactive)
-  (if joseph-autopair-activated-p
+(define-minor-mode joseph-auto-pair-mode
+  "joseph autopair  mode."
+  ;; :lighter " AP"
+  :group 'convenience
+  (if joseph-auto-pair-mode
       (progn
-        (defalias 'backward-delete-char-untabify  (symbol-function 'joseph-autopair-origin-backward-delete-char-untabify))
-        (defalias 'backward-delete-char  (symbol-function 'joseph-autopair-origin-delete-backward-char))
-        (remove-hook 'after-change-functions 'joseph-autopair-after-change-function)
-        (setq joseph-autopair-activated-p nil)
-        (message "joseph-autopair is deactivated now!")
+        (defalias 'backward-delete-char-untabify  (symbol-function 'joseph-autopair-backward-delete-char-untabify))
+        (defalias 'backward-delete-char  (symbol-function 'joseph-autopair-delete-backward-char))
+        (add-hook 'after-change-functions 'joseph-autopair-after-change-function)
         )
-    (defalias 'backward-delete-char-untabify  (symbol-function 'joseph-autopair-backward-delete-char-untabify))
-    (defalias 'backward-delete-char  (symbol-function 'joseph-autopair-delete-backward-char))
-    (add-hook 'after-change-functions 'joseph-autopair-after-change-function)
-    (setq joseph-autopair-activated-p t)
-    (message "joseph-autopair is activated now!")
-    )
-  )
+    (defalias 'backward-delete-char-untabify  (symbol-function 'origin-backward-delete-char-untabify-1))
+    (defalias 'backward-delete-char  (symbol-function 'origin-delete-backward-char-1))
+    (remove-hook 'after-change-functions 'joseph-autopair-after-change-function)
+    ))
+
 
 (provide 'joseph-autopair)
 ;;joseph-autopair.el ends here.
